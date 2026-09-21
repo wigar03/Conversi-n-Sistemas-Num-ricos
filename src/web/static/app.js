@@ -1,6 +1,6 @@
 /**
  * Calculadora de Sistemas Numéricos - Álgebra Lineal UAM
- * Frontend Controller & UI Logic
+ * Frontend Controller & UI Logic con Visualizadores Interactivos
  */
 
 // Estado global de la aplicación
@@ -20,7 +20,6 @@ const BASE_CONFIGS = {
   2: {
     name: 'Binario',
     label: 'Base 2 (Binario)',
-    allowedRegex: /^[0-1]+$/,
     allowedDesc: '[0, 1]',
     examples: ['10110', '11111111', '101', '0'],
     placeholder: 'Ej. 10110'
@@ -28,16 +27,14 @@ const BASE_CONFIGS = {
   8: {
     name: 'Octal',
     label: 'Base 8 (Octal)',
-    allowedRegex: /^[0-7]+$/,
-    allowedDesc: '[0-7]',
+    allowedDesc: '[0 - 7]',
     examples: ['377', '1647', '52', '0'],
     placeholder: 'Ej. 377'
   },
   16: {
     name: 'Hexadecimal',
     label: 'Base 16 (Hexadecimal)',
-    allowedRegex: /^[0-9A-Fa-f]+$/,
-    allowedDesc: '[0-9, A-F]',
+    allowedDesc: '[0 - 9, A - F]',
     examples: ['3A7', 'FF', '1A', '0'],
     placeholder: 'Ej. 3A7'
   }
@@ -47,8 +44,7 @@ const BASE_CONFIGS = {
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   initTabs();
-  initForms();
-  // Disparar conversiones iniciales por defecto para que la vista tenga contenido inmediato
+  // Ejecutar conversiones por defecto para mostrar vistas ricas inmediatas
   handleConvertFromDecimal();
 });
 
@@ -94,19 +90,17 @@ function initTabs() {
     if (!btn) return;
 
     btn.addEventListener('click', () => {
-      // Remover clase active de todas las pestañas
       tabs.forEach(t => {
         document.getElementById(t.id)?.classList.remove('active');
         document.getElementById(t.panel)?.classList.remove('active');
         document.getElementById(t.id)?.setAttribute('aria-selected', 'false');
       });
 
-      // Activar la seleccionada
       btn.classList.add('active');
       document.getElementById(tab.panel)?.classList.add('active');
       btn.setAttribute('aria-selected', 'true');
 
-      // Si se abre el módulo 2 por primera vez sin resultado, ejecutar ejemplo
+      // Si se abre el módulo 2 y no tiene resultado aún, ejecutar ejemplo
       if (tab.id === 'tab-module2' && !document.getElementById('result-container-m2').innerHTML) {
         handleConvertToDecimal();
       }
@@ -142,6 +136,135 @@ function setDecimalExample(val) {
   }
 }
 
+async function handleConvertFromDecimal() {
+  const inputElem = document.getElementById('input-decimal-val');
+  const resultContainer = document.getElementById('result-container-m1');
+  if (!inputElem || !resultContainer) return;
+
+  const rawVal = inputElem.value.trim();
+  if (rawVal === '') {
+    showToast('Por favor ingrese un número decimal válido.', 'error');
+    return;
+  }
+
+  const decimalNum = parseInt(rawVal, 10);
+  if (isNaN(decimalNum)) {
+    showToast('El valor ingresado no es un número entero válido.', 'error');
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/convert/from-decimal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ decimal: decimalNum, base: AppState.m1.targetBase })
+    });
+
+    const resJson = await response.json();
+    if (!resJson.success) {
+      showToast(resJson.error || 'Error al procesar la conversión.', 'error');
+      return;
+    }
+
+    renderModule1Result(resJson.data);
+  } catch (err) {
+    showToast('Error de comunicación con el servidor local.', 'error');
+    console.error(err);
+  }
+}
+
+function renderModule1Result(data) {
+  const container = document.getElementById('result-container-m1');
+  container.style.display = 'block';
+
+  // Filas de la tabla de divisiones euclidianas
+  const tableRowsHtml = data.steps.map(s => `
+    <tr>
+      <td><span class="procedure-badge">#${s.step_number}</span></td>
+      <td><strong>${s.dividend}</strong></td>
+      <td><span style="color:var(--text-muted)">÷</span> ${s.divisor}</td>
+      <td><span class="quotient-highlight">${s.quotient}</span></td>
+      <td><strong>${s.remainder}</strong></td>
+      <td><span class="remainder-pill">${s.remainder_symbol}</span></td>
+      <td style="color:var(--text-muted); font-size:0.85rem">${s.equation}</td>
+    </tr>
+  `).join('');
+
+  // Nodos del flujo de residuos (leídos de abajo hacia arriba)
+  const trailHtml = data.remainders_reversed.map((sym, idx) => `
+    <div class="trail-node" title="Residuo posición ${data.remainders_reversed.length - 1 - idx}">
+      <span class="trail-node-char">${sym}</span>
+      <span class="trail-node-sub">r<sub>${data.remainders_reversed.length - 1 - idx}</sub></span>
+    </div>
+    ${idx < data.remainders_reversed.length - 1 ? '<span class="trail-arrow">→</span>' : ''}
+  `).join('');
+
+  container.innerHTML = `
+    <!-- Hero Result Banner -->
+    <div class="result-hero">
+      <div class="result-hero-left">
+        <span class="result-hero-label">Resultado Equivalente (${data.base_name})</span>
+        <div class="result-hero-value">(${data.result_str})<sub>${data.target_base}</sub></div>
+        <span style="color:var(--text-secondary); font-size:0.88rem">
+          Equivalencia: (${data.decimal_input})<sub>10</sub> = (${data.result_str})<sub>${data.target_base}</sub>
+        </span>
+      </div>
+      <div class="result-hero-actions">
+        <button class="btn-copy" onclick="copyToClipboard('${data.result_str}')">
+          <span>📋 Copiar Número</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Procedure Card -->
+    <div class="card procedure-section">
+      <div class="procedure-header">
+        <h3 class="procedure-title">
+          <span>Procedimiento: Algoritmo de Divisiones Sucesivas</span>
+          <span class="procedure-badge">${data.steps.length} ${data.steps.length === 1 ? 'paso' : 'pasos'}</span>
+        </h3>
+        <span style="font-size:0.8rem; color:var(--text-muted)">Dividendo = (Cociente × Base) + Residuo</span>
+      </div>
+
+      <!-- Division Table -->
+      <div class="table-responsive">
+        <table class="division-table">
+          <thead>
+            <tr>
+              <th>Paso</th>
+              <th>Dividendo</th>
+              <th>Divisor</th>
+              <th>Cociente</th>
+              <th>Residuo</th>
+              <th>Símbolo</th>
+              <th>Comprobación Euclidiana</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${tableRowsHtml}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Trail of Remainders -->
+      <div class="flow-trail-card">
+        <div class="flow-trail-title">
+          <span>🔄 Construcción del Número (Residuos en Orden Inverso)</span>
+        </div>
+        <p style="font-size:0.82rem; color:var(--text-secondary); margin-bottom:8px">
+          El residuo de la última división es el dígito más significativo (MSD), y el de la primera división es el menos significativo (LSD):
+        </p>
+        <div class="trail-nodes-container">
+          ${trailHtml}
+        </div>
+        <p style="font-size:0.85rem; font-weight:600; color:var(--accent-cyan); margin-top:8px">
+          Número resultante concatenado: ${data.result_str}
+        </p>
+      </div>
+    </div>
+  `;
+}
+
 /* ===================================================================
    Controles y Ejemplos de Módulo 2 (Bases -> Decimal)
    =================================================================== */
@@ -159,7 +282,6 @@ function selectSourceBase(base) {
     }
   });
 
-  // Actualizar etiqueta, placeholders y ejemplos
   const conf = BASE_CONFIGS[base];
   document.getElementById('label-source-input').textContent = `Número en ${conf.label}`;
   document.getElementById('allowed-digits-badge').textContent = conf.allowedDesc;
@@ -168,7 +290,6 @@ function selectSourceBase(base) {
   input.placeholder = conf.placeholder;
   input.value = conf.examples[0];
 
-  // Actualizar barra de ejemplos
   const exBar = document.getElementById('examples-bar-m2');
   if (exBar) {
     exBar.innerHTML = `<span class="examples-label">Ejemplos rápidos:</span>` +
@@ -186,12 +307,115 @@ function setBaseExample(val) {
   }
 }
 
-function initForms() {
-  // Listeners para submits se configuraron inline en onsubmit
+async function handleConvertToDecimal() {
+  const inputElem = document.getElementById('input-base-val');
+  const resultContainer = document.getElementById('result-container-m2');
+  if (!inputElem || !resultContainer) return;
+
+  const rawVal = inputElem.value.trim();
+  if (rawVal === '') {
+    showToast('Por favor ingrese el número a convertir.', 'error');
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/convert/to-decimal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: rawVal, base: AppState.m2.sourceBase })
+    });
+
+    const resJson = await response.json();
+    if (!resJson.success) {
+      showToast(resJson.error || 'Error en la conversión.', 'error');
+      return;
+    }
+
+    renderModule2Result(resJson.data);
+  } catch (err) {
+    showToast('Error de comunicación con el servidor local.', 'error');
+    console.error(err);
+  }
+}
+
+function renderModule2Result(data) {
+  const container = document.getElementById('result-container-m2');
+  container.style.display = 'block';
+
+  // Tarjetas para cada columna de la descomposición polinómica/vectorial
+  const vectorCardsHtml = data.terms.map(t => `
+    <div class="vector-col-card">
+      <span class="vector-pos-badge">Pos ${t.exponent}</span>
+      <div class="vector-digit">${t.char}</div>
+      <div class="vector-scalar-sub">Escalar d<sub>${t.exponent}</sub> = ${t.scalar_value}</div>
+      <div class="vector-divider"></div>
+      <div class="vector-weight-label">${t.base}<sup>${t.exponent}</sup> =</div>
+      <div class="vector-weight-val">${t.weight}</div>
+      <div class="vector-product-val">+ ${t.product}</div>
+    </div>
+  `).join('');
+
+  container.innerHTML = `
+    <!-- Hero Result Banner -->
+    <div class="result-hero">
+      <div class="result-hero-left">
+        <span class="result-hero-label">Equivalente Decimal (Base 10)</span>
+        <div class="result-hero-value">(${data.decimal_result})<sub>10</sub></div>
+        <span style="color:var(--text-secondary); font-size:0.88rem">
+          Equivalencia: (${data.raw_input.trim()})<sub>${data.source_base}</sub> = (${data.decimal_result})<sub>10</sub>
+        </span>
+      </div>
+      <div class="result-hero-actions">
+        <button class="btn-copy" onclick="copyToClipboard('${data.decimal_result}')">
+          <span>📋 Copiar Número</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Procedure Card -->
+    <div class="card procedure-section">
+      <div class="procedure-header">
+        <h3 class="procedure-title">
+          <span>Demostración de la Combinación Lineal Posicional</span>
+          <span class="procedure-badge">${data.terms.length} ${data.terms.length === 1 ? 'término' : 'términos'}</span>
+        </h3>
+        <span style="font-size:0.8rem; color:var(--text-muted)">N = ∑ (d<sub>i</sub> × b<sup>i</sup>)</span>
+      </div>
+
+      <!-- Vectorial Cards Grid -->
+      <div class="vector-grid">
+        ${vectorCardsHtml}
+      </div>
+
+      <!-- Vector Notation Card -->
+      <div class="vector-notation-card">
+        <div class="vector-notation-title">Representación en Álgebra Lineal</div>
+        <p style="color:var(--text-secondary); margin-bottom:4px">
+          El número representa un vector de coordenadas escalares proyectado sobre la base canónica polinomial del espacio vectorial:
+        </p>
+        <p style="font-family:var(--font-mono); font-size:0.88rem; color:var(--text-primary)">
+          <strong>Vector de Escalares:</strong> [${data.vector_scalars.join(', ')}]<br>
+          <strong>Base de Ponderaciones:</strong> [${data.vector_weights.join(', ')}]<br>
+          <strong>Producto Escalar:</strong> [${data.vector_scalars.join(', ')}] • [${data.vector_weights.join(', ')}] = <strong>${data.decimal_result}</strong>
+        </p>
+      </div>
+
+      <!-- Formula Expansion Box -->
+      <div class="formula-box">
+        <span class="formula-line" style="color:var(--text-muted)">// Expresión formal polinómica de la combinación lineal:</span>
+        <span class="formula-line">N = ${data.linear_combination_formula}</span>
+        <span class="formula-line" style="color:var(--text-muted)">// Sustitución de ponderaciones b^i:</span>
+        <span class="formula-line">  = ${data.linear_combination_eval}</span>
+        <span class="formula-line" style="color:var(--text-muted)">// Productos escalares individuales:</span>
+        <span class="formula-line">  = ${data.linear_combination_products}</span>
+        <span class="formula-line formula-highlight">  = ${data.decimal_result} (decimal)</span>
+      </div>
+    </div>
+  `;
 }
 
 /* ===================================================================
-   Sistema de Notificaciones Toast
+   Utilidades (Toast & Clipboard)
    =================================================================== */
 
 function showToast(message, type = 'info') {
