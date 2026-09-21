@@ -1,11 +1,255 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="dark">
 <head>
   <meta charset="UTF-8">
-  <title>Calculadora de Sistemas Numéricos - Álgebra Lineal UAM</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Sistemas Numéricos | Álgebra Lineal UAM</title>
+  <meta name="description" content="Módulo de conversión rigurosa entre sistemas decimales, binarios, octales y hexadecimales con demostración de combinaciones lineales y divisiones sucesivas.">
+  <link rel="stylesheet" href="/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔢</text></svg>">
 </head>
 <body>
-  <h1>Sistemas Numéricos - Álgebra Lineal</h1>
-  <p>Servidor inicializado.</p>
+  <!-- Ambient background glow elements -->
+  <div class="ambient-glow ambient-glow-1"></div>
+  <div class="ambient-glow ambient-glow-2"></div>
+  <div class="ambient-glow ambient-glow-3"></div>
+
+  <div class="container">
+    <!-- Main Application Header -->
+    <header class="header">
+      <div class="header-brand">
+        <div class="header-titles">
+          <div class="header-badge">
+            <span class="header-badge-dot"></span>
+            <span>UAM • FIA • Álgebra Lineal (MTM0120)</span>
+          </div>
+          <h1 id="app-title">Calculadora de Sistemas Numéricos</h1>
+          <p id="app-subtitle">Conversión formal entre bases con demostración de combinaciones lineales y divisiones euclidianas</p>
+        </div>
+      </div>
+      <button id="theme-toggle-btn" class="theme-toggle-btn" title="Alternar Modo Oscuro / Claro" aria-label="Cambiar tema">
+        <span id="theme-icon">🌙</span>
+      </button>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs" role="tablist">
+      <button id="tab-module1" class="tab-btn active" role="tab" aria-selected="true" aria-controls="panel-module1">
+        <div class="tab-icon">➗</div>
+        <div>
+          <span class="tab-info-title">Módulo 1: Decimal → Bases</span>
+          <span class="tab-info-desc">Divisiones sucesivas y residuos</span>
+        </div>
+      </button>
+
+      <button id="tab-module2" class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-module2">
+        <div class="tab-icon">∑</div>
+        <div>
+          <span class="tab-info-title">Módulo 2: Bases → Decimal</span>
+          <span class="tab-info-desc">Combinación lineal posicional</span>
+        </div>
+      </button>
+
+      <button id="tab-theory" class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-theory">
+        <div class="tab-icon">📐</div>
+        <div>
+          <span class="tab-info-title">Fundamentos Algebraicos</span>
+          <span class="tab-info-desc">Bases canónicas y ponderación</span>
+        </div>
+      </button>
+    </nav>
+
+    <!-- Main Content Panels -->
+    <main>
+      <!-- ================= PANEL 1: DECIMAL A BASES ================= -->
+      <section id="panel-module1" class="module-panel active" role="tabpanel" aria-labelledby="tab-module1">
+        <div class="card">
+          <div class="card-title-row">
+            <div>
+              <h2 class="card-title">
+                <span>Conversión de Decimal a Base Numérica</span>
+                <span class="card-title-badge">Módulo 1</span>
+              </h2>
+              <p class="card-subtitle">Algoritmo de divisiones sucesivas euclidianas (dividendo = cociente × divisor + residuo)</p>
+            </div>
+          </div>
+
+          <form id="form-module1" onsubmit="event.preventDefault(); handleConvertFromDecimal();">
+            <div class="form-grid">
+              <!-- Decimal Input -->
+              <div class="form-group">
+                <label for="input-decimal-val" class="form-label">
+                  <span>Número Decimal Entero (Base 10)</span>
+                  <span id="label-dec-counter" style="font-size:0.75rem; color:var(--text-muted)">N ∈ ℤ</span>
+                </label>
+                <div class="input-wrapper">
+                  <input type="number" id="input-decimal-val" class="text-input" placeholder="Ej. 255" required value="255" step="1">
+                </div>
+                <!-- Quick Badges -->
+                <div class="examples-bar">
+                  <span class="examples-label">Ejemplos rápidos:</span>
+                  <button type="button" class="example-badge" onclick="setDecimalExample(255)">255</button>
+                  <button type="button" class="example-badge" onclick="setDecimalExample(935)">935</button>
+                  <button type="button" class="example-badge" onclick="setDecimalExample(1024)">1024</button>
+                  <button type="button" class="example-badge" onclick="setDecimalExample(42)">42</button>
+                  <button type="button" class="example-badge" onclick="setDecimalExample(0)">0</button>
+                </div>
+              </div>
+
+              <!-- Base Selector Chips -->
+              <div class="form-group">
+                <label class="form-label">
+                  <span>Seleccionar Base Destino</span>
+                </label>
+                <div class="base-chips-group" id="chips-target-base">
+                  <button type="button" class="base-chip" data-base="2" onclick="selectTargetBase(2)">
+                    <span class="base-chip-name">Binario</span>
+                    <span class="base-chip-val">Base 2</span>
+                  </button>
+                  <button type="button" class="base-chip" data-base="8" onclick="selectTargetBase(8)">
+                    <span class="base-chip-name">Octal</span>
+                    <span class="base-chip-val">Base 8</span>
+                  </button>
+                  <button type="button" class="base-chip active" data-base="16" onclick="selectTargetBase(16)">
+                    <span class="base-chip-name">Hexadecimal</span>
+                    <span class="base-chip-val">Base 16</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" id="btn-submit-m1" class="btn-primary">
+              <span>⚡ Convertir y Generar Procedimiento Paso a Paso</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Result Container Module 1 -->
+        <div id="result-container-m1" class="result-card"></div>
+      </section>
+
+      <!-- ================= PANEL 2: BASES A DECIMAL ================= -->
+      <section id="panel-module2" class="module-panel" role="tabpanel" aria-labelledby="tab-module2">
+        <div class="card">
+          <div class="card-title-row">
+            <div>
+              <h2 class="card-title">
+                <span>Conversión a Decimal vía Combinación Lineal</span>
+                <span class="card-title-badge">Módulo 2</span>
+              </h2>
+              <p class="card-subtitle">Descomposición formal de las coordenadas escalares sobre la base canónica de ponderación</p>
+            </div>
+          </div>
+
+          <form id="form-module2" onsubmit="event.preventDefault(); handleConvertToDecimal();">
+            <div class="form-grid">
+              <!-- Base Selector Chips -->
+              <div class="form-group">
+                <label class="form-label">
+                  <span>Seleccionar Base Origen</span>
+                </label>
+                <div class="base-chips-group" id="chips-source-base">
+                  <button type="button" class="base-chip" data-base="2" onclick="selectSourceBase(2)">
+                    <span class="base-chip-name">Binario</span>
+                    <span class="base-chip-val">Base 2</span>
+                  </button>
+                  <button type="button" class="base-chip" data-base="8" onclick="selectSourceBase(8)">
+                    <span class="base-chip-name">Octal</span>
+                    <span class="base-chip-val">Base 8</span>
+                  </button>
+                  <button type="button" class="base-chip active" data-base="16" onclick="selectSourceBase(16)">
+                    <span class="base-chip-name">Hexadecimal</span>
+                    <span class="base-chip-val">Base 16</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Input String -->
+              <div class="form-group">
+                <label for="input-base-val" class="form-label">
+                  <span id="label-source-input">Número en Base 16 (Hexadecimal)</span>
+                  <span id="allowed-digits-badge" style="font-size:0.75rem; color:var(--accent-cyan); font-family:var(--font-mono)">[0-9, A-F]</span>
+                </label>
+                <div class="input-wrapper">
+                  <input type="text" id="input-base-val" class="text-input" placeholder="Ej. 3A7" required value="3A7" autocomplete="off" spellcheck="false">
+                </div>
+                <!-- Quick Badges for Base -->
+                <div class="examples-bar" id="examples-bar-m2">
+                  <span class="examples-label">Ejemplos rápidos:</span>
+                  <button type="button" class="example-badge" onclick="setBaseExample('3A7')">3A7</button>
+                  <button type="button" class="example-badge" onclick="setBaseExample('FF')">FF</button>
+                  <button type="button" class="example-badge" onclick="setBaseExample('1A')">1A</button>
+                  <button type="button" class="example-badge" onclick="setBaseExample('0')">0</button>
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" id="btn-submit-m2" class="btn-primary">
+              <span>📐 Calcular Combinación Lineal y Procedimiento</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Result Container Module 2 -->
+        <div id="result-container-m2" class="result-card"></div>
+      </section>
+
+      <!-- ================= PANEL 3: TEORÍA DE ÁLGEBRA LINEAL ================= -->
+      <section id="panel-theory" class="module-panel" role="tabpanel" aria-labelledby="tab-theory">
+        <div class="theory-grid">
+          <div class="theory-card">
+            <div class="theory-icon">🌐</div>
+            <h3>Sistemas Posicionales y Espacios Vectoriales</h3>
+            <p>
+              Cualquier número entero en base $b$ puede representarse como un vector de coordenadas
+              $\vec{v} = (d_n, d_{n-1}, \dots, d_1, d_0)$ proyectado sobre la base canónica polinómica
+              de ponderaciones $\mathcal{B} = \{b^n, b^{n-1}, \dots, b^1, b^0\}$.
+            </p>
+            <span class="math-formula">N = d_n·b^n + d_{n-1}·b^{n-1} + ... + d_1·b^1 + d_0·b^0</span>
+            <p>
+              Donde cada coeficiente o escalar $d_i$ pertenece al cuerpo finito $\{0, 1, \dots, b-1\}$.
+            </p>
+          </div>
+
+          <div class="theory-card">
+            <div class="theory-icon">🔄</div>
+            <h3>Algoritmo de la División Euclidiana</h3>
+            <p>
+              Para convertir un número decimal a base $b$, se aplica sucesivamente el Teorema del Resto de Euclides:
+            </p>
+            <span class="math-formula">D = q · b + r,  con  0 ≤ r < b</span>
+            <p>
+              El cociente $q$ se convierte en el dividendo de la siguiente iteración. Dado que cada residuo $r_i$ es
+              estrictamente menor que la base, los residuos leídos en orden inverso forman los escalares $d_i$.
+            </p>
+          </div>
+
+          <div class="theory-card">
+            <div class="theory-icon">⚡</div>
+            <h3>Equivalencia Canónica en Bases 2, 8 y 16</h3>
+            <p>
+              Las bases 2, 8 y 16 están íntimamente ligadas mediante potencias de 2:
+            </p>
+            <span class="math-formula">2^1 = 2 (Binario) | 2^3 = 8 (Octal) | 2^4 = 16 (Hexadecimal)</span>
+            <p>
+              Por tanto, 1 dígito octal equivale a un sub-espacio vectorial de 3 bits, y 1 dígito hexadecimal
+              representa un sub-espacio de 4 bits (nibble), garantizando isomorfismo entre sus representaciones.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>Universidad Americana (UAM) • Facultad de Ingeniería y Arquitectura (FIA)</p>
+      <p style="margin-top:4px">Álgebra Lineal (MTM0120) • Proyecto Integrador: Calculadora de Sistemas Numéricos</p>
+    </footer>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container"></div>
+
+  <script src="/app.js"></script>
 </body>
 </html>
