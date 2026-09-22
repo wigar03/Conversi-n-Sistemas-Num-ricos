@@ -4,6 +4,16 @@
 > **Facultad de Ingeniería y Arquitectura (FIA)**  
 > **Asignatura:** Álgebra Lineal (`MTM0120`)  
 > **Proyecto Integrador:** Módulo de Conversión de Sistemas Numéricos (Primer Corte Evaluativo)
+> 
+> Integrantes (Grupo 10):
+
+    William Antonio García García
+
+    Andrés Sebastián González Maradiaga
+
+    Rafael Hernández Sánchez
+
+    Caleb Jordan Tardencilla Alvarado
 
 ---
 
