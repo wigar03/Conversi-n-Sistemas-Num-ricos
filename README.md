@@ -129,3 +129,6 @@ python3 -m unittest discover tests -v
 - **Visualizador de Divisiones:** Tabla paso a paso con residuo destacado, comprobación euclidiana ($D = q \cdot b + r$) y flujo animado de residuos en orden inverso.
 - **Visualizador de Combinación Lineal:** Cuadrícula de ponderación posicional para cada dígito, visualizador del producto escalar vectorial y desglose algebraico polinomial completo.
 - **Validaciones en Tiempo Real:** Detección de caracteres no válidos de acuerdo a la base seleccionada (ej. rechazo de '2' en binario o '8' en octal).
+- **Controles Stepper Intuitivos (+ / −):** Desactivación del scroll nativo involuntario y spinners del navegador en inputs numéricos, reemplazados por controles interactivos con soporte para pulsación simple y continua (press & hold).
+- **Iconografía Minimalista Open Source:** Interfaz limpia sin emojis, estandarizada con iconos vectoriales SVG de Lucide Icons (MIT) adaptables a modo claro y oscuro.
+

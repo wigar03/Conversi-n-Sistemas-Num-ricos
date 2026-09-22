@@ -6,7 +6,7 @@
   <title>Calculadora de Sistemas Numéricos | Álgebra Lineal UAM</title>
   <meta name="description" content="Módulo de conversión rigurosa entre sistemas decimales, binarios, octales y hexadecimales con demostración de combinaciones lineales y divisiones sucesivas.">
   <link rel="stylesheet" href="/style.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔢</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2306b6d4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect width='16' height='20' x='4' y='2' rx='2'/><line x1='8' x2='16' y1='6' y2='6'/><line x1='16' x2='16' y1='14' y2='18'/><path d='M16 10h.01'/><path d='M12 10h.01'/><path d='M8 10h.01'/><path d='M12 14h.01'/><path d='M8 14h.01'/><path d='M12 18h.01'/><path d='M8 18h.01'/></svg>">
 </head>
 <body>
   <!-- Ambient background glow elements -->
@@ -28,14 +28,32 @@
         </div>
       </div>
       <button id="theme-toggle-btn" class="theme-toggle-btn" title="Alternar Modo Oscuro / Claro" aria-label="Cambiar tema">
-        <span id="theme-icon">🌙</span>
+        <span id="theme-icon">
+          <svg class="theme-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v2"></path>
+            <path d="M12 20v2"></path>
+            <path d="m4.93 4.93 1.41 1.41"></path>
+            <path d="m17.66 17.66 1.41 1.41"></path>
+            <path d="M2 12h2"></path>
+            <path d="M20 12h2"></path>
+            <path d="m6.34 17.66-1.41 1.41"></path>
+            <path d="m19.07 4.93-1.41 1.41"></path>
+          </svg>
+        </span>
       </button>
     </header>
 
     <!-- Navigation Tabs -->
     <nav class="nav-tabs" role="tablist">
       <button id="tab-module1" class="tab-btn active" role="tab" aria-selected="true" aria-controls="panel-module1">
-        <div class="tab-icon">➗</div>
+        <div class="tab-icon">
+          <svg class="tab-icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="6" r="1.5" fill="currentColor"></circle>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <circle cx="12" cy="18" r="1.5" fill="currentColor"></circle>
+          </svg>
+        </div>
         <div>
           <span class="tab-info-title">Módulo 1: Decimal → Bases</span>
           <span class="tab-info-desc">Divisiones sucesivas y residuos</span>
@@ -43,7 +61,11 @@
       </button>
 
       <button id="tab-module2" class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-module2">
-        <div class="tab-icon">∑</div>
+        <div class="tab-icon">
+          <svg class="tab-icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 7V4H6l6 8-6 8h12v-3"></path>
+          </svg>
+        </div>
         <div>
           <span class="tab-info-title">Módulo 2: Bases → Decimal</span>
           <span class="tab-info-desc">Combinación lineal posicional</span>
@@ -51,7 +73,13 @@
       </button>
 
       <button id="tab-theory" class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-theory">
-        <div class="tab-icon">📐</div>
+        <div class="tab-icon">
+          <svg class="tab-icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg>
+        </div>
         <div>
           <span class="tab-info-title">Fundamentos Algebraicos</span>
           <span class="tab-info-desc">Bases canónicas y ponderación</span>
@@ -82,8 +110,19 @@
                   <span>Número Decimal Entero (Base 10)</span>
                   <span id="label-dec-counter" style="font-size:0.75rem; color:var(--text-muted)">N ∈ ℤ</span>
                 </label>
-                <div class="input-wrapper">
-                  <input type="number" id="input-decimal-val" class="text-input" placeholder="Ej. 255" required value="255" step="1">
+                <div class="stepper-wrapper">
+                  <button type="button" id="btn-dec-minus" class="stepper-btn stepper-btn-minus" aria-label="Disminuir valor" title="Restar 1">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                  </button>
+                  <input type="number" id="input-decimal-val" class="text-input stepper-input" placeholder="Ej. 255" required value="255" min="0" step="1" autocomplete="off">
+                  <button type="button" id="btn-dec-plus" class="stepper-btn stepper-btn-plus" aria-label="Aumentar valor" title="Sumar 1">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                  </button>
                 </div>
                 <!-- Quick Badges -->
                 <div class="examples-bar">
@@ -119,7 +158,10 @@
             </div>
 
             <button type="submit" id="btn-submit-m1" class="btn-primary">
-              <span>⚡ Convertir y Generar Procedimiento Paso a Paso</span>
+              <svg class="btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="6 3 20 12 6 21 6 3"></polygon>
+              </svg>
+              <span>Convertir y Generar Procedimiento Paso a Paso</span>
             </button>
           </form>
         </div>
@@ -185,7 +227,10 @@
             </div>
 
             <button type="submit" id="btn-submit-m2" class="btn-primary">
-              <span>📐 Calcular Combinación Lineal y Procedimiento</span>
+              <svg class="btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 7V4H6l6 8-6 8h12v-3"></path>
+              </svg>
+              <span>Calcular Combinación Lineal y Procedimiento</span>
             </button>
           </form>
         </div>
@@ -198,7 +243,14 @@
       <section id="panel-theory" class="module-panel" role="tabpanel" aria-labelledby="tab-theory">
         <div class="theory-grid">
           <div class="theory-card">
-            <div class="theory-icon">🌐</div>
+            <div class="theory-icon">
+              <svg class="theory-icon-svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="7" height="7" x="3" y="3" rx="1"></rect>
+                <rect width="7" height="7" x="14" y="3" rx="1"></rect>
+                <rect width="7" height="7" x="14" y="14" rx="1"></rect>
+                <rect width="7" height="7" x="3" y="14" rx="1"></rect>
+              </svg>
+            </div>
             <h3>Sistemas Posicionales y Espacios Vectoriales</h3>
             <p>
               Cualquier número entero en base $b$ puede representarse como un vector de coordenadas
@@ -212,12 +264,19 @@
           </div>
 
           <div class="theory-card">
-            <div class="theory-icon">🔄</div>
+            <div class="theory-icon">
+              <svg class="theory-icon-svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m17 2 4 4-4 4"></path>
+                <path d="M3 11v-1a4 4 0 0 1 4-4h14"></path>
+                <path d="m7 22-4-4 4-4"></path>
+                <path d="M21 13v1a4 4 0 0 1-4 4H3"></path>
+              </svg>
+            </div>
             <h3>Algoritmo de la División Euclidiana</h3>
             <p>
               Para convertir un número decimal a base $b$, se aplica sucesivamente el Teorema del Resto de Euclides:
             </p>
-            <span class="math-formula">D = q · b + r,  con  0 ≤ r < b</span>
+            <span class="math-formula">D = q · b + r,  con  0 ≤ r &lt; b</span>
             <p>
               El cociente $q$ se convierte en el dividendo de la siguiente iteración. Dado que cada residuo $r_i$ es
               estrictamente menor que la base, los residuos leídos en orden inverso forman los escalares $d_i$.
@@ -225,7 +284,20 @@
           </div>
 
           <div class="theory-card">
-            <div class="theory-icon">⚡</div>
+            <div class="theory-icon">
+              <svg class="theory-icon-svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4" y="4" width="16" height="16" rx="2"></rect>
+                <rect x="9" y="9" width="6" height="6"></rect>
+                <path d="M15 2v2"></path>
+                <path d="M15 20v2"></path>
+                <path d="M2 15h2"></path>
+                <path d="M2 9h2"></path>
+                <path d="M20 15h2"></path>
+                <path d="M20 9h2"></path>
+                <path d="M9 2v2"></path>
+                <path d="M9 20v2"></path>
+              </svg>
+            </div>
             <h3>Equivalencia Canónica en Bases 2, 8 y 16</h3>
             <p>
               Las bases 2, 8 y 16 están íntimamente ligadas mediante potencias de 2:

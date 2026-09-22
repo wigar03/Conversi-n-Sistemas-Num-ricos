@@ -40,10 +40,51 @@ const BASE_CONFIGS = {
   }
 };
 
+// Iconos SVG Minimalistas (Open Source / Lucide Icons - MIT License)
+const ICONS = {
+  sun: `<svg class="theme-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="4"></circle>
+    <path d="M12 2v2"></path>
+    <path d="M12 20v2"></path>
+    <path d="m4.93 4.93 1.41 1.41"></path>
+    <path d="m17.66 17.66 1.41 1.41"></path>
+    <path d="M2 12h2"></path>
+    <path d="M20 12h2"></path>
+    <path d="m6.34 17.66-1.41 1.41"></path>
+    <path d="m19.07 4.93-1.41 1.41"></path>
+  </svg>`,
+  moon: `<svg class="theme-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+  </svg>`,
+  copy: `<svg class="btn-copy-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect>
+    <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path>
+  </svg>`,
+  check: `<svg class="btn-copy-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M20 6 9 17l-5-5"></path>
+  </svg>`,
+  flowTrail: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m3 16 4 4 4-4"></path>
+    <path d="M7 20V4"></path>
+    <path d="m21 8-4-4-4 4"></path>
+    <path d="M17 4v16"></path>
+  </svg>`,
+  toastSuccess: `<svg class="toast-icon-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10"></circle>
+    <path d="m9 12 2 2 4-4"></path>
+  </svg>`,
+  toastError: `<svg class="toast-icon-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10"></circle>
+    <line x1="12" y1="8" x2="12" y2="12"></line>
+    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+  </svg>`
+};
+
 // Inicialización cuando carga el DOM
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   initTabs();
+  initStepper();
   // Ejecutar conversiones por defecto para mostrar vistas ricas inmediatas
   handleConvertFromDecimal();
 });
@@ -70,7 +111,7 @@ function initTheme() {
 function updateThemeIcon() {
   const icon = document.getElementById('theme-icon');
   if (icon) {
-    icon.textContent = AppState.theme === 'dark' ? '☀️' : '🌙';
+    icon.innerHTML = AppState.theme === 'dark' ? ICONS.sun : ICONS.moon;
   }
 }
 
@@ -109,8 +150,73 @@ function initTabs() {
 }
 
 /* ===================================================================
-   Controles y Ejemplos de Módulo 1 (Decimal -> Bases)
+   Controles y Stepper (+ / -) de Módulo 1 (Decimal -> Bases)
    =================================================================== */
+
+function initStepper() {
+  const input = document.getElementById('input-decimal-val');
+  const btnMinus = document.getElementById('btn-dec-minus');
+  const btnPlus = document.getElementById('btn-dec-plus');
+
+  if (!input || !btnMinus || !btnPlus) return;
+
+  // Prevenir que el scroll con rueda de ratón (mouse wheel) cambie el número
+  input.addEventListener('wheel', (e) => {
+    e.preventDefault();
+  }, { passive: false });
+
+  // Función para modificar el valor de forma segura
+  function stepValue(delta) {
+    const current = parseInt(input.value, 10);
+    const baseVal = isNaN(current) ? 0 : current;
+    const newVal = Math.max(0, baseVal + delta);
+    input.value = newVal;
+    handleConvertFromDecimal();
+  }
+
+  // Soporte de pulsación sostenida (press and hold)
+  function attachHoldListener(btn, delta) {
+    let holdTimeout = null;
+    let holdInterval = null;
+
+    const start = (e) => {
+      e.preventDefault();
+      stepValue(delta);
+
+      holdTimeout = setTimeout(() => {
+        holdInterval = setInterval(() => {
+          stepValue(delta);
+        }, 70);
+      }, 350);
+    };
+
+    const stop = () => {
+      if (holdTimeout) clearTimeout(holdTimeout);
+      if (holdInterval) clearInterval(holdInterval);
+      holdTimeout = null;
+      holdInterval = null;
+    };
+
+    btn.addEventListener('mousedown', start);
+    btn.addEventListener('touchstart', start, { passive: false });
+
+    btn.addEventListener('mouseup', stop);
+    btn.addEventListener('mouseleave', stop);
+    btn.addEventListener('touchend', stop);
+    btn.addEventListener('touchcancel', stop);
+  }
+
+  attachHoldListener(btnMinus, -1);
+  attachHoldListener(btnPlus, 1);
+
+  // Escuchar entrada de teclado directa
+  input.addEventListener('input', () => {
+    const val = parseInt(input.value, 10);
+    if (!isNaN(val) && val >= 0) {
+      handleConvertFromDecimal();
+    }
+  });
+}
 
 function selectTargetBase(base) {
   AppState.m1.targetBase = base;
@@ -210,8 +316,9 @@ function renderModule1Result(data) {
         </span>
       </div>
       <div class="result-hero-actions">
-        <button class="btn-copy" onclick="copyToClipboard('${data.result_str}')">
-          <span>📋 Copiar Número</span>
+        <button class="btn-copy" onclick="copyToClipboard('${data.result_str}', this)">
+          ${ICONS.copy}
+          <span>Copiar Número</span>
         </button>
       </div>
     </div>
@@ -249,7 +356,8 @@ function renderModule1Result(data) {
       <!-- Trail of Remainders -->
       <div class="flow-trail-card">
         <div class="flow-trail-title">
-          <span>🔄 Construcción del Número (Residuos en Orden Inverso)</span>
+          ${ICONS.flowTrail}
+          <span>Construcción del Número (Residuos en Orden Inverso)</span>
         </div>
         <p style="font-size:0.82rem; color:var(--text-secondary); margin-bottom:8px">
           El residuo de la última división es el dígito más significativo (MSD), y el de la primera división es el menos significativo (LSD):
@@ -366,8 +474,9 @@ function renderModule2Result(data) {
         </span>
       </div>
       <div class="result-hero-actions">
-        <button class="btn-copy" onclick="copyToClipboard('${data.decimal_result}')">
-          <span>📋 Copiar Número</span>
+        <button class="btn-copy" onclick="copyToClipboard('${data.decimal_result}', this)">
+          ${ICONS.copy}
+          <span>Copiar Número</span>
         </button>
       </div>
     </div>
@@ -424,8 +533,8 @@ function showToast(message, type = 'info') {
 
   const toast = document.createElement('div');
   toast.className = `toast ${type === 'error' ? 'toast-error' : 'toast-success'}`;
-  const icon = type === 'error' ? '⚠️' : '✅';
-  toast.innerHTML = `<span>${icon}</span><span>${message}</span>`;
+  const iconSvg = type === 'error' ? ICONS.toastError : ICONS.toastSuccess;
+  toast.innerHTML = `<span>${iconSvg}</span><span>${message}</span>`;
 
   container.appendChild(toast);
 
@@ -436,9 +545,18 @@ function showToast(message, type = 'info') {
   }, 4000);
 }
 
-function copyToClipboard(text) {
+function copyToClipboard(text, btnElement = null) {
   navigator.clipboard.writeText(text).then(() => {
     showToast('Copiado al portapapeles: ' + text, 'success');
+    if (btnElement) {
+      const originalHtml = btnElement.innerHTML;
+      btnElement.classList.add('copied');
+      btnElement.innerHTML = `${ICONS.check}<span>¡Copiado!</span>`;
+      setTimeout(() => {
+        btnElement.classList.remove('copied');
+        btnElement.innerHTML = originalHtml;
+      }, 1600);
+    }
   }).catch(() => {
     showToast('No se pudo copiar automáticamente', 'error');
   });
